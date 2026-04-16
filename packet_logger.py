@@ -1,7 +1,7 @@
 from ryu.base import app_manager
 from ryu.controller import ofp_event
 from ryu.controller.handler import MAIN_DISPATCHER, CONFIG_DISPATCHER, set_ev_cls
-from ryu.lib.packet import packet, ethernet, ipv4, tcp, udp, icmp, arp, ipv6, icmpv6
+from ryu.lib.packet import packet, ethernet, ipv4, tcp, udp, icmp, arp, ipv6
 from ryu.ofproto import ofproto_v1_3
 import datetime
 from collections import defaultdict
@@ -14,7 +14,7 @@ class PacketLogger(app_manager.RyuApp):
         super().__init__(*args, **kwargs)
         self.mac_to_port = defaultdict(dict) #MAC learning table
 
-    #Handlers for packet-in events
+    #Handlers for packet-in events: switch logic!
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
         datapath = ev.msg.datapath
@@ -54,7 +54,7 @@ class PacketLogger(app_manager.RyuApp):
 
         #Learn MAC
         if src != "ff:ff:ff:ff:ff:ff":
-            pass
+            self.mac_to_port[dpid][src] = in_port
 
         #Extract protocols (Capture Packet Headers)
         ip = pkt.get_protocol(ipv4.ipv4)
