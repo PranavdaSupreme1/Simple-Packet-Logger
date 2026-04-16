@@ -9,8 +9,6 @@ This project implements a packet logger using the Ryu SDN controller. It capture
 * Mininet
 * netcat (for TCP/UDP testing)
 
----
-
 ## Setup
 
 ### 1. Activate virtual environment
@@ -19,20 +17,22 @@ This project implements a packet logger using the Ryu SDN controller. It capture
 source ryu-env/bin/activate
 ```
 
-### 2. Run the controller
-
-```bash
-EVENTLET_NO_GREENDNS=yes ryu-manager packet_logger.py
-```
+### 2. Exempt GREENDNS
+In the file ```~/ryu-env/bin/activate```, add ```export EVENTLET_NO_GREENDNS=yes```.
 > using GREENDNS causes AttributeError: module 'collections' has no attribute 'MutableMapping' - compatibility issues with Python 3.10
 
-### 3. Start Mininet (in a new terminal)
+### 3. Run the controller
+
+```bash
+ryu-manager packet_logger.py
+```
+
+### 4. Start Mininet (in a new terminal)
 
 ```bash
 sudo mn --topo single,3 --controller=remote
 ```
 > Single-switch topology (s1), 3 hosts (h1,h2,h3), --controller instructs mininet to use an external controller (which is Ryu!)
----
 
 ## Notes
 
