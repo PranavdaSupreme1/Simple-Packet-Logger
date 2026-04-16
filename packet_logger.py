@@ -12,9 +12,9 @@ class PacketLogger(app_manager.RyuApp):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.mac_to_port = defaultdict(dict)
+        self.mac_to_port = defaultdict(dict) #MAC learning table
 
-    # Install rule to send packets to controller
+    #Handlers for packet-in events
     @set_ev_cls(ofp_event.EventOFPSwitchFeatures, CONFIG_DISPATCHER)
     def switch_features_handler(self, ev):
         datapath = ev.msg.datapath
@@ -52,11 +52,11 @@ class PacketLogger(app_manager.RyuApp):
         dst = eth.dst
         dpid = datapath.id
 
-        # Learn MAC
+        #Learn MAC
         if src != "ff:ff:ff:ff:ff:ff":
-            self.mac_to_port[dpid][src] = in_port
+            pass
 
-        # Extract protocols
+        #Extract protocols (Capture Packet Headers)
         ip = pkt.get_protocol(ipv4.ipv4)
         ip6 = pkt.get_protocol(ipv6.ipv6)
         tcp_pkt = pkt.get_protocol(tcp.tcp)
@@ -73,7 +73,7 @@ class PacketLogger(app_manager.RyuApp):
         else:
             src_ip, dst_ip = "N/A", "N/A"
 
-        # Protocol detection (simple)
+        #Identify protocol types
         protocol = "OTHER"
         extra = ""
 
@@ -90,7 +90,7 @@ class PacketLogger(app_manager.RyuApp):
         elif icmp_pkt:
             protocol = "ICMP"
 
-        # Logging
+        #Maintain logs
         time = datetime.datetime.now().strftime("%H:%M:%S")
         log_msg = (
             f"[{time}] {src_ip} → {dst_ip} | {protocol} {extra} | "
@@ -103,12 +103,7 @@ class PacketLogger(app_manager.RyuApp):
             f.write(log_msg + "\n")
 
         # Forwarding (learning switch)
-        out_port = self.mac_to_port[dpid].get(dst)
-
-        if out_port and out_port != in_port:
-            actions = [parser.OFPActionOutput(out_port)]
-        else:
-            actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
+        actions = [parser.OFPActionOutput(ofproto.OFPP_FLOOD)]
 
         out = parser.OFPPacketOut(
             datapath=datapath,
